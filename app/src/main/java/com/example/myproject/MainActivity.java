@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.VideoView;
@@ -67,11 +68,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class Image extends AsyncTask<ArrayList<Match>, Void, Void> {
+    private class Image extends AsyncTask<ArrayList<Match>, Void, ArrayList<Bitmap>> {
         @Override
-        protected Void doInBackground(ArrayList<Match>... lists) {
+        protected ArrayList<Bitmap> doInBackground(ArrayList<Match>... lists) {
             ArrayList<Match> src = lists[0];
             HttpURLConnection urlConnection = null;
+            ArrayList<Bitmap> images = new ArrayList<>();
 
             for(int i = 0; i < src.size(); i++) {
                 try {
@@ -84,12 +86,13 @@ public class MainActivity extends AppCompatActivity {
                     urlConnection.connect();
 
                     if (urlConnection.getResponseCode() == 200) {
-                        src.get(i).setThumb(BitmapFactory.decodeStream(urlConnection.getInputStream()));
+                        images.add(BitmapFactory.decodeStream(urlConnection.getInputStream()));
+                        Log.v("OOOOOOOOOOOOOOOOOO", "image");
                     } else {
-                        src.get(i).setThumb(null);
+                        images.add(null);
                     }
                 } catch (IOException e) {
-                    src.get(i).setThumb(null);
+                    images.add(null);
                 }
 
                 finally {
@@ -97,10 +100,16 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            return null;
+            return images;
 
         }
 
+        @Override
+        protected void onPostExecute(ArrayList<Bitmap> bitmaps) {
+            for(int i = 0; i < bitmaps.size(); i++) {
+                matches.get(i).setThumb(bitmaps.get(i));
+            }
+        }
     }
 
 
