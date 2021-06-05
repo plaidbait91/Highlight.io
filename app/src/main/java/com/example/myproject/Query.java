@@ -100,7 +100,33 @@ public class Query {
                 String team2 = match.getJSONObject("side2").getString("name");
                 String title = team1 + " V/S " + team2;
                 String tourn = match.getJSONObject("competition").getString("name");
-                String url = match.getString("url");
+
+                JSONArray videos = match.getJSONArray("videos");
+                String url = null;
+                int index = 0, len = videos.length();
+
+                while(index < len) {
+                    url = videos.getJSONObject(index).getString("title");
+
+                    if(url.equals("Highlights") || url.equals("Live Stream")) break;
+                    else url = null;
+
+                    index++;
+                }
+
+                if(url != null) {
+                    String embed = videos.getJSONObject(index).getString("embed");
+                    url = embed.substring(embed.indexOf("https:"), embed.indexOf("?utm_source=api"));
+
+                    String r1 = response(url);
+                    String u2 = r1.substring(r1.indexOf("https:"), r1.indexOf("frameBorder") - 2);
+                    String r2 = response(u2);
+                    String id = r2.substring(r2.indexOf("img.youtube.com") + 19, r2.indexOf("/hqdefault.jpg"));
+
+                    url = "https://www.youtube.com/watch?v=" + id;
+                }
+                else url = match.getString("url");
+
                 String time = match.getString("date");
                 String img_src = match.getString("thumbnail");
 
@@ -124,6 +150,32 @@ public class Query {
             line = reader.readLine();
         }
         return output.toString();
+    }
+
+    private static String response(String url) {
+        URL link = null;
+        BufferedReader reader = null;
+        StringBuilder s = new StringBuilder();
+        String src = null;
+        try {
+            link = new URL(url);
+            reader = new BufferedReader(new InputStreamReader(link.openStream()));
+            String line = reader.readLine();
+
+            while (line != null) {
+                s.append(line);
+                line = reader.readLine();
+            }
+
+            src = s.toString();
+        }
+
+        catch(IOException e) {
+            e.printStackTrace();
+        }
+
+        return src;
+
     }
 
 
