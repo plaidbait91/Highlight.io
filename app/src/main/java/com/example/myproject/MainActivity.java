@@ -6,9 +6,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.VideoView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         Start start = new Start();
         start.execute();
 
+
     }
 
     private class Start extends AsyncTask<Void, Void, ArrayList<Match>> {
@@ -59,25 +62,19 @@ public class MainActivity extends AppCompatActivity {
 
             Image image = new Image();
 
-            image.execute(matches);
-
-            adapter.clear();
-
-            if(matches != null && matches.size() != 0) adapter.addAll(matches);
+            image.execute();
 
         }
     }
 
-    private class Image extends AsyncTask<ArrayList<Match>, Void, ArrayList<Bitmap>> {
+    private class Image extends AsyncTask<Void, Void, Void> {
         @Override
-        protected ArrayList<Bitmap> doInBackground(ArrayList<Match>... lists) {
-            ArrayList<Match> src = lists[0];
+        protected Void doInBackground(Void... voids) {
             HttpURLConnection urlConnection = null;
-            ArrayList<Bitmap> images = new ArrayList<>();
 
-            for(int i = 0; i < src.size(); i++) {
+            for(int i = 0; i < matches.size(); i++) {
                 try {
-                    URL url = new URL(src.get(i).getThumbURL());
+                    URL url = new URL(matches.get(i).getThumbURL());
 
                     urlConnection = (HttpURLConnection) url.openConnection();
                     urlConnection.setRequestMethod("GET");
@@ -86,29 +83,27 @@ public class MainActivity extends AppCompatActivity {
                     urlConnection.connect();
 
                     if (urlConnection.getResponseCode() == 200) {
-                        images.add(BitmapFactory.decodeStream(urlConnection.getInputStream()));
-                        Log.v("OOOOOOOOOOOOOOOOOO", "image");
+                        matches.get(i).setThumb(BitmapFactory.decodeStream(urlConnection.getInputStream()));
                     } else {
-                        images.add(null);
+                        matches.get(i).setThumb(null);
                     }
                 } catch (IOException e) {
-                    images.add(null);
+                    matches.get(i).setThumb(null);
                 }
 
                 finally {
                     if(urlConnection != null) urlConnection.disconnect();
                 }
+
             }
 
-            return images;
+            return null;
 
         }
 
         @Override
-        protected void onPostExecute(ArrayList<Bitmap> bitmaps) {
-            for(int i = 0; i < bitmaps.size(); i++) {
-                matches.get(i).setThumb(bitmaps.get(i));
-            }
+        protected void onPostExecute(Void aVoid) {
+            adapter.notifyDataSetChanged();
         }
     }
 
