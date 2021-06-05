@@ -1,11 +1,14 @@
 package com.example.myproject;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -41,6 +44,11 @@ public class MainActivity extends AppCompatActivity {
 
         Start start = new Start();
         start.execute();
+
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            Match clicked = matches.get(position);
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(clicked.getURL())));
+        });
 
 
     }
