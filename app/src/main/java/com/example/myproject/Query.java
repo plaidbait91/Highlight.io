@@ -103,6 +103,7 @@ public class Query {
 
                 JSONArray videos = match.getJSONArray("videos");
                 String url = null;
+                String img_src = null;
                 int index = 0, len = videos.length();
 
                 while(index < len) {
@@ -124,11 +125,12 @@ public class Query {
                     String id = r2.substring(r2.indexOf("img.youtube.com") + 19, r2.indexOf("/hqdefault.jpg"));
 
                     url = "https://www.youtube.com/watch?v=" + id;
+                    img_src = match.getString("thumbnail");
                 }
                 else url = match.getString("url");
 
                 String time = match.getString("date");
-                String img_src = match.getString("thumbnail");
+
 
                 list.add(new Match(title, tourn, url, null, time, img_src));
             }
