@@ -10,6 +10,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -29,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<Match> matches;
     MatchAdapter adapter;
     ProgressBar progress;
+    EditText field;
+    Button load;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,12 +42,22 @@ public class MainActivity extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.list);
         matches = new ArrayList<Match>();
         progress = (ProgressBar) findViewById(R.id.progress);
+        field = (EditText) findViewById(R.id.num);
+        load = (Button) findViewById(R.id.start);
+
         adapter = new MatchAdapter(getBaseContext(), R.layout.list_item, matches);
         listView.setAdapter(adapter);
+        progress.setVisibility(View.GONE);
+        
+        load.setOnClickListener(v -> {
+            int query = 10;
 
+            if(field.getText().toString().length() != 0)
+                query = Integer.parseInt(field.getText().toString());
 
-        Start start = new Start();
-        start.execute();
+            Start start = new Start();
+            start.execute(query);
+        });
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
             Match clicked = matches.get(position);
@@ -53,11 +67,17 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private class Start extends AsyncTask<Void, Void, ArrayList<Match>> {
+    private class Start extends AsyncTask<Integer, Void, ArrayList<Match>> {
 
         @Override
-        protected ArrayList<Match> doInBackground(Void... voids) {
-            return Query.getMatches();
+        protected void onPreExecute() {
+            adapter.clear();
+            progress.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected ArrayList<Match> doInBackground(Integer... integers) {
+            return Query.getMatches(integers[0]);
         }
 
         @Override

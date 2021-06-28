@@ -1,10 +1,6 @@
 package com.example.myproject;
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,7 +23,7 @@ public class Query {
 
     private static final String queryURL = "https://www.scorebat.com/video-api/v1/";
 
-    public static ArrayList<Match> getMatches() {
+    public static ArrayList<Match> getMatches(int query) {
         URL url = null;
 
         try {
@@ -38,7 +34,7 @@ public class Query {
             Log.e("Query", "Something has gone seriously wrong!", e);
         }
 
-        return extract(request(url));
+        return extract(request(url), query);
     }
 
     private static String request(URL url) {
@@ -85,7 +81,7 @@ public class Query {
         return response;
     }
 
-    private static ArrayList<Match> extract(String s) {
+    private static ArrayList<Match> extract(String s, int n) {
         ArrayList<Match> list = new ArrayList<Match>();
 
         if(s == null) return list;
@@ -93,7 +89,7 @@ public class Query {
         try {
             JSONArray root = new JSONArray(s);
 
-            for(int i = 0; i < 10; i++) {
+            for(int i = 0; i < Math.min(root.length(), n); i++) {
                 JSONObject match = root.getJSONObject(i);
 
                 String team1 = match.getJSONObject("side1").getString("name");
