@@ -1,22 +1,16 @@
 package com.example.myproject;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.VideoView;
+import android.widget.Spinner;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -31,8 +25,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<Match> matches;
     MatchAdapter adapter;
     ProgressBar progress;
-    EditText field;
-    Button load;
+    Spinner spinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,21 +35,35 @@ public class MainActivity extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.list);
         matches = new ArrayList<Match>();
         progress = (ProgressBar) findViewById(R.id.progress);
-        field = (EditText) findViewById(R.id.num);
-        load = (Button) findViewById(R.id.start);
+        spinner = (Spinner) findViewById(R.id.query);
+
+        ArrayAdapter<CharSequence> spinAdapter = ArrayAdapter.createFromResource(this, R.array.quantity, android.R.layout.simple_spinner_item);
+        spinAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(spinAdapter);
 
         adapter = new MatchAdapter(getBaseContext(), R.layout.list_item, matches);
         listView.setAdapter(adapter);
         progress.setVisibility(View.GONE);
-        
-        load.setOnClickListener(v -> {
-            int query = 10;
 
-            if(field.getText().toString().length() != 0)
-                query = Integer.parseInt(field.getText().toString());
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selected = spinner.getSelectedItem().toString();
+                Start start = new Start();
 
-            Start start = new Start();
-            start.execute(query);
+                if(!selected.equals("Select")) {
+
+                    if (!selected.equals("All")) {
+                        int number = Integer.parseInt(selected);
+                        start.execute(number);
+                    } else start.execute(1000);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
         });
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
