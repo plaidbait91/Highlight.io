@@ -1,7 +1,10 @@
 package com.example.myproject;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -19,6 +22,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     EditText team;
     EditText tourn;
     Button search;
+    SharedPreferences preferences;
+    SharedPreferences.Editor pref_edit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,10 +49,19 @@ public class MainActivity extends AppCompatActivity {
         team = (EditText) findViewById(R.id.team);
         tourn = (EditText) findViewById(R.id.tour);
         search = (Button) findViewById(R.id.search);
+        preferences = this.getPreferences(Context.MODE_PRIVATE);
 
         ArrayAdapter<CharSequence> spinAdapter = ArrayAdapter.createFromResource(this, R.array.quantity, android.R.layout.simple_spinner_item);
         spinAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(spinAdapter);
+
+        ArrayList<String> quantity = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.quantity)));
+
+        if(preferences.contains("Results")) {
+            spinner.setSelection(quantity.indexOf(preferences.getString("Results", "Select")));
+            team.setText(preferences.getString("Team", ""));
+            tourn.setText(preferences.getString("Tourn", ""));
+        }
 
         adapter = new MatchAdapter(getBaseContext(), R.layout.list_item, matches);
         listView.setAdapter(adapter);
@@ -64,6 +79,15 @@ public class MainActivity extends AppCompatActivity {
                     start.execute(selected, arg1, arg2);
                 } else start.execute("1000", arg1, arg2);
             }
+
+            pref_edit = preferences.edit();
+
+            pref_edit.putString("Results", selected);
+            pref_edit.putString("Team", arg1);
+            pref_edit.putString("Tourn", arg2);
+
+            pref_edit.apply();
+
         });
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
@@ -96,14 +120,14 @@ public class MainActivity extends AppCompatActivity {
 
             progress.setVisibility(View.GONE);
 
-            Image image = new Image();
+            ImageLoad image = new ImageLoad();
 
             image.execute();
 
         }
     }
 
-    private class Image extends AsyncTask<Void, Void, Void> {
+    private class ImageLoad extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... voids) {
             HttpURLConnection urlConnection = null;
