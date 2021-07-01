@@ -6,8 +6,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -26,6 +27,9 @@ public class MainActivity extends AppCompatActivity {
     MatchAdapter adapter;
     ProgressBar progress;
     Spinner spinner;
+    EditText team;
+    EditText tourn;
+    Button search;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
         matches = new ArrayList<Match>();
         progress = (ProgressBar) findViewById(R.id.progress);
         spinner = (Spinner) findViewById(R.id.query);
+        team = (EditText) findViewById(R.id.team);
+        tourn = (EditText) findViewById(R.id.tour);
+        search = (Button) findViewById(R.id.search);
 
         ArrayAdapter<CharSequence> spinAdapter = ArrayAdapter.createFromResource(this, R.array.quantity, android.R.layout.simple_spinner_item);
         spinAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -45,24 +52,17 @@ public class MainActivity extends AppCompatActivity {
         listView.setAdapter(adapter);
         progress.setVisibility(View.GONE);
 
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selected = spinner.getSelectedItem().toString();
-                Start start = new Start();
+        search.setOnClickListener(v -> {
+            String selected = spinner.getSelectedItem().toString();
+            String arg1 = team.getText().toString();
+            String arg2 = tourn.getText().toString();
+            Start start = new Start();
 
-                if(!selected.equals("Select")) {
+            if(!selected.equals("Select")) {
 
-                    if (!selected.equals("All")) {
-                        int number = Integer.parseInt(selected);
-                        start.execute(number);
-                    } else start.execute(1000);
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
+                if (!selected.equals("All")) {
+                    start.execute(selected, arg1, arg2);
+                } else start.execute("1000", arg1, arg2);
             }
         });
 
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private class Start extends AsyncTask<Integer, Void, ArrayList<Match>> {
+    private class Start extends AsyncTask<String, Void, ArrayList<Match>> {
 
         @Override
         protected void onPreExecute() {
@@ -83,8 +83,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected ArrayList<Match> doInBackground(Integer... integers) {
-            return Query.getMatches(integers[0]);
+        protected ArrayList<Match> doInBackground(String... strings) {
+            int number = Integer.parseInt(strings[0]);
+            return Query.getMatches(number, strings[1], strings[2]);
         }
 
         @Override
