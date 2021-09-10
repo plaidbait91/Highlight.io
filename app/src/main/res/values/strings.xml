@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyProject</string>
+    <string name="app_name">Highlight.io</string>
     <string name="empty_list">No results! Please try again later.</string>
     <string name="no_internet">No Internet Connection!</string>
 

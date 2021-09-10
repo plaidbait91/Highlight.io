@@ -1,4 +1,4 @@
-package com.example.myproject;
+package com.example.highlightio;
 
 import org.junit.Test;
 

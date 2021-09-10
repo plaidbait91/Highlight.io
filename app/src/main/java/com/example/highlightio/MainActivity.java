@@ -1,4 +1,4 @@
-package com.example.myproject;
+package com.example.highlightio;
 
 import android.content.Context;
 import android.content.Intent;
