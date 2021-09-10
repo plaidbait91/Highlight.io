@@ -1,10 +1,6 @@
-package com.example.myproject;
+package com.example.highlightio;
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,7 +23,7 @@ public class Query {
 
     private static final String queryURL = "https://www.scorebat.com/video-api/v1/";
 
-    public static ArrayList<Match> getMatches() {
+    public static ArrayList<Match> getMatches(int query, String team, String tourn) {
         URL url = null;
 
         try {
@@ -38,7 +34,7 @@ public class Query {
             Log.e("Query", "Something has gone seriously wrong!", e);
         }
 
-        return extract(request(url));
+        return extract(request(url), query, team, tourn);
     }
 
     private static String request(URL url) {
@@ -85,7 +81,7 @@ public class Query {
         return response;
     }
 
-    private static ArrayList<Match> extract(String s) {
+    private static ArrayList<Match> extract(String s, int n, String team, String tournament) {
         ArrayList<Match> list = new ArrayList<Match>();
 
         if(s == null) return list;
@@ -93,7 +89,7 @@ public class Query {
         try {
             JSONArray root = new JSONArray(s);
 
-            for(int i = 0; i < 10; i++) {
+            for(int i = 0, results = 0; i < root.length() && results < n; i++) {
                 JSONObject match = root.getJSONObject(i);
 
                 String team1 = match.getJSONObject("side1").getString("name");
@@ -101,38 +97,44 @@ public class Query {
                 String title = team1 + " V/S " + team2;
                 String tourn = match.getJSONObject("competition").getString("name");
 
-                JSONArray videos = match.getJSONArray("videos");
-                String url = null;
-                String img_src = null;
-                int index = 0, len = videos.length();
+                String search1 = team1.toLowerCase();
+                String search2 = team2.toLowerCase();
+                String search3 = tourn.toLowerCase();
+                if((search1.contains(team.toLowerCase()) || search2.contains(team.toLowerCase())) && search3.contains(tournament.toLowerCase())) {
 
-                while(index < len) {
-                    url = videos.getJSONObject(index).getString("title");
+                    JSONArray videos = match.getJSONArray("videos");
+                    String url = null;
+                    String img_src = null;
+                    int index = 0, len = videos.length();
 
-                    if(url.equals("Highlights") || url.equals("Live Stream")) break;
-                    else url = null;
+                    while (index < len) {
+                        url = videos.getJSONObject(index).getString("title");
 
-                    index++;
+                        if (url.equals("Highlights") || url.equals("Live Stream")) break;
+                        else url = null;
+
+                        index++;
+                    }
+
+                    if (url != null) {
+                        String embed = videos.getJSONObject(index).getString("embed");
+                        url = embed.substring(embed.indexOf("https:"), embed.indexOf("?utm_source=api"));
+
+                        String r1 = response(url);
+                        String u2 = r1.substring(r1.indexOf("https:"), r1.indexOf("frameBorder") - 2);
+                        String r2 = response(u2);
+                        String id = r2.substring(r2.indexOf("img.youtube.com") + 19, r2.indexOf("/hqdefault.jpg"));
+
+                        url = "https://www.youtube.com/watch?v=" + id;
+                        img_src = match.getString("thumbnail");
+                    } else url = match.getString("url");
+
+                    String time = match.getString("date");
+
+
+                    list.add(new Match(title, tourn, url, null, time, img_src));
+                    results++;
                 }
-
-                if(url != null) {
-                    String embed = videos.getJSONObject(index).getString("embed");
-                    url = embed.substring(embed.indexOf("https:"), embed.indexOf("?utm_source=api"));
-
-                    String r1 = response(url);
-                    String u2 = r1.substring(r1.indexOf("https:"), r1.indexOf("frameBorder") - 2);
-                    String r2 = response(u2);
-                    String id = r2.substring(r2.indexOf("img.youtube.com") + 19, r2.indexOf("/hqdefault.jpg"));
-
-                    url = "https://www.youtube.com/watch?v=" + id;
-                    img_src = match.getString("thumbnail");
-                }
-                else url = match.getString("url");
-
-                String time = match.getString("date");
-
-
-                list.add(new Match(title, tourn, url, null, time, img_src));
             }
         } catch (JSONException e) {
             Log.v("OOOOOOOOOOOOOOOOOO", "ERROR");
