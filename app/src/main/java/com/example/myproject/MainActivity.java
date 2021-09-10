@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
-import android.media.Image;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -34,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     EditText team;
     EditText tourn;
     Button search;
+    TextView emptyView;
     SharedPreferences preferences;
     SharedPreferences.Editor pref_edit;
 
@@ -42,20 +44,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        listView = (ListView) findViewById(R.id.list);
+        listView = findViewById(R.id.list);
         matches = new ArrayList<Match>();
-        progress = (ProgressBar) findViewById(R.id.progress);
-        spinner = (Spinner) findViewById(R.id.query);
-        team = (EditText) findViewById(R.id.team);
-        tourn = (EditText) findViewById(R.id.tour);
-        search = (Button) findViewById(R.id.search);
+        progress = findViewById(R.id.progress);
+        spinner = findViewById(R.id.query);
+        team = findViewById(R.id.team);
+        tourn = findViewById(R.id.tour);
+        search = findViewById(R.id.search);
+        emptyView = findViewById(R.id.empty_view);
         preferences = this.getPreferences(Context.MODE_PRIVATE);
 
         ArrayAdapter<CharSequence> spinAdapter = ArrayAdapter.createFromResource(this, R.array.quantity, android.R.layout.simple_spinner_item);
         spinAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(spinAdapter);
 
-        ArrayList<String> quantity = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.quantity)));
+        ArrayList<String> quantity = new ArrayList(Arrays.asList(getResources().getStringArray(R.array.quantity)));
 
         if(preferences.contains("Results")) {
             spinner.setSelection(quantity.indexOf(preferences.getString("Results", "Select")));
@@ -65,7 +68,12 @@ public class MainActivity extends AppCompatActivity {
 
         adapter = new MatchAdapter(getBaseContext(), R.layout.list_item, matches);
         listView.setAdapter(adapter);
+
+        listView.setEmptyView(emptyView);
+
         progress.setVisibility(View.GONE);
+        emptyView.setVisibility(View.GONE);
+
 
         search.setOnClickListener(v -> {
             String selected = spinner.getSelectedItem().toString();
@@ -104,6 +112,8 @@ public class MainActivity extends AppCompatActivity {
         protected void onPreExecute() {
             adapter.clear();
             progress.setVisibility(View.VISIBLE);
+            emptyView.setVisibility(View.GONE);
+
         }
 
         @Override
@@ -119,6 +129,13 @@ public class MainActivity extends AppCompatActivity {
             if(matches != null && matches.size() != 0) adapter.addAll(matches);
 
             progress.setVisibility(View.GONE);
+
+            if(!isNetworkConnected()) {
+                emptyView.setText(R.string.no_internet);
+            }
+            else {
+                emptyView.setText(R.string.empty_list);
+            }
 
             ImageLoad image = new ImageLoad();
 
@@ -165,6 +182,12 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             adapter.notifyDataSetChanged();
         }
+    }
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected();
     }
 
 

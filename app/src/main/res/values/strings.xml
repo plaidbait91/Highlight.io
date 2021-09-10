@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">MyProject</string>
+    <string name="empty_list">No results! Please try again later.</string>
+    <string name="no_internet">No Internet Connection!</string>
 
     <string-array name="quantity">
         <item>Select</item>
